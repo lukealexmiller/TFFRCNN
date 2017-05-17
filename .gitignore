@@ -7,6 +7,7 @@
 *.out
 *.tar.gz
 *.so
+experiments/notebooks/.ipynb_checkpoints/*
 experiments/logs/*
 experiments/eval/*
 data/cache/*
