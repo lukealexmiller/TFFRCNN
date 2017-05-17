@@ -38,7 +38,7 @@ def parse_args():
                         help='optional config file', default=None, type=str)
     parser.add_argument('--wait', dest='wait',
                         help='wait until net file exists',
-                        default=True, type=bool)
+                        default=0, type=int)
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to test',
                         default='voc_2007_test', type=str)
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     print('Using config:')
     pprint.pprint(cfg)
 
-    while not os.path.exists(args.model) and args.wait:
+    while not os.path.exists(args.model) and bool(args.wait):
         print('Waiting for {} to exist...'.format(args.model))
         time.sleep(1000)
 
