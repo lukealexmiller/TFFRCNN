@@ -323,7 +323,7 @@ def vis_hardneg(im, im_name, detections, gt_boxes, gt_cls_names):
         np.ascontiguousarray(gt_boxes, dtype=np.float))
     
     argmax_overlaps = overlaps.argmax(axis=1)
-    max_overlaps = overlaps[:, argmax_overlaps]#np.arange(len(argmax_overlaps))
+    max_overlaps = overlaps[np.arange(len(argmax_overlaps)), argmax_overlaps]
     confidence = detections[:,4]
     hardneg_inds = np.where(( max_overlaps <= 0.5 ) & ( confidence >= 0.8 ))[0]
     hardnegs = detections[hardneg_inds, :4]
