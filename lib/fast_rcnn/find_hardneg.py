@@ -265,7 +265,7 @@ def save_hardneg( detections, gt_boxes, gt_cls_names, hardneg_save_path ):
     overlaps = bbox_overlaps(
         np.ascontiguousarray(detections[:,:4], dtype=np.float),
         np.ascontiguousarray(gt_boxes, dtype=np.float))
-    
+
     argmax_overlaps = overlaps.argmax(axis=1)
     max_overlaps = overlaps[np.arange(len(argmax_overlaps)), argmax_overlaps]
     confidence = detections[:,4]
@@ -319,12 +319,14 @@ def vis_hardneg(im, im_name, detections, gt_boxes, gt_cls_names):
 #   visualize both the hardnegs (in red) and groundtruth fg&bg bbox (in green)
 
     overlaps = bbox_overlaps(
-        np.ascontiguousarray(detections, dtype=np.float),
+        np.ascontiguousarray(detections[:,:4], dtype=np.float),
         np.ascontiguousarray(gt_boxes, dtype=np.float))
+    
     argmax_overlaps = overlaps.argmax(axis=1)
     max_overlaps = overlaps[np.arange(len(argmax_overlaps)), argmax_overlaps]
-    hardneg_inds = np.where( max_overlaps <= 0.1 )[0]
-    hardnegs = detections[hardneg_inds, :]
+    confidence = detections[:,4]
+    hardneg_inds = np.where(( max_overlaps <= 0.5 ) & ( confidence >= 0.8 ))[0]
+    hardnegs = detections[hardneg_inds, :4]
 
     im = im[:, :, (2, 1, 0)]
     plt.cla()
@@ -348,6 +350,7 @@ def vis_hardneg(im, im_name, detections, gt_boxes, gt_cls_names):
                 )
         plt.annotate( gt_cls_names[i], (bbox[0], bbox[1]))
     plt.show()
+    print(os.path.join( 'output', 'hardnegs' ))
     if not os.path.exists( os.path.join( 'output', 'hardnegs' ) ):
         os.mkdir( os.path.join( 'output', 'hardnegs') )
     im_save_path = os.path.join( 'output', 'hardnegs', os.path.basename( im_name )+'.jpg' )
@@ -397,10 +400,10 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300, thresh=0.05,
         detect_time = _t['im_detect'].toc(average=False)
 
         _t['misc'].tic()
-        if vis:
-            image = im[:, :, (2, 1, 0)] 
-            plt.cla()
-            plt.imshow(image)
+#        if vis:
+#            image = im[:, :, (2, 1, 0)] 
+#            plt.cla()
+#            plt.imshow(image)
 
         # skip j = 0, because it's the background class
         for j in xrange(1, imdb.num_classes):
@@ -414,8 +417,8 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300, thresh=0.05,
 #            if vis:
 #                vis_detections(image, imdb.classes[j], cls_dets)
             all_boxes[j][i] = cls_dets
-        if vis:
-           plt.show()
+#        if vis:
+#           plt.show()
         # Limit to max_per_image detections *over all classes*
         if max_per_image > 0:
             image_scores = np.hstack([all_boxes[j][i][:, -1]
@@ -447,7 +450,7 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300, thresh=0.05,
 
         save_hardneg( detections_im_i[:,:5], gt_boxes, gt_cls_names, hardneg_save_path )
         if vis:
-            vis_hardneg(im, imdb.image_path_at(i), detections_im_i[:,:4], gt_boxes, gt_cls_names)
+            vis_hardneg(im, imdb.image_path_at(i), detections_im_i[:,:5], gt_boxes, gt_cls_names)
 
 
     with open(det_file, 'wb') as f:
