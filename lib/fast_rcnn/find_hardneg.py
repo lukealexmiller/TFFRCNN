@@ -273,7 +273,7 @@ def save_hardneg( detections, gt_boxes, gt_cls_names, hardneg_save_path ):
     print(max_overlaps)
     confidence = detections[:,4]
     print(confidence)
-    hardneg_inds = np.where( max_overlaps <= 0.5 & confidence >= 0.8)[0]
+    hardneg_inds = np.where(( max_overlaps <= 0.5 ) & ( confidence >= 0.8 ))[0]
     hardnegs = detections[hardneg_inds, :4]
 
     xml_f = open(hardneg_save_path, 'w')
