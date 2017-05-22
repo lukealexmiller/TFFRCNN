@@ -323,7 +323,7 @@ def vis_hardneg(im, im_name, detections, gt_boxes, gt_cls_names):
         np.ascontiguousarray(gt_boxes, dtype=np.float))
     
     argmax_overlaps = overlaps.argmax(axis=1)
-    max_overlaps = overlaps[np.arange(len(argmax_overlaps)), argmax_overlaps]
+    max_overlaps = overlaps[:, argmax_overlaps]#np.arange(len(argmax_overlaps))
     confidence = detections[:,4]
     hardneg_inds = np.where(( max_overlaps <= 0.5 ) & ( confidence >= 0.8 ))[0]
     hardnegs = detections[hardneg_inds, :4]
@@ -353,7 +353,7 @@ def vis_hardneg(im, im_name, detections, gt_boxes, gt_cls_names):
     print(os.path.join( 'output', 'hardnegs' ))
     if not os.path.exists( os.path.join( 'output', 'hardnegs' ) ):
         os.mkdir( os.path.join( 'output', 'hardnegs') )
-    im_save_path = os.path.join( 'output', 'hardnegs', os.path.basename( im_name )+'.jpg' )
+    im_save_path = os.path.join( 'output', 'hardnegs', os.path.basename( im_name ) )
     plt.savefig( im_save_path )
 
 def test_net(sess, net, imdb, weights_filename , max_per_image=300, thresh=0.05, vis=False):
