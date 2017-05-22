@@ -267,9 +267,10 @@ def save_hardneg( detections, gt_boxes, gt_cls_names, hardneg_save_path ):
         np.ascontiguousarray(gt_boxes, dtype=np.float))
     argmax_overlaps = overlaps.argmax(axis=1)
     max_overlaps = overlaps[np.arange(len(argmax_overlaps)), argmax_overlaps]
+    print(max_overlaps)
     confidence = detections[:,4]
     print(confidence)
-    hardneg_inds = np.where( max_overlaps <= 0.5 & )[0]
+    hardneg_inds = np.where( max_overlaps <= 0.5)[0]
     hardnegs = detections[hardneg_inds, :]
 
     xml_f = open(hardneg_save_path, 'w')
