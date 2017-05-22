@@ -17,6 +17,8 @@ from ..utils.boxes_grid import get_boxes_grid
 
 from ..fast_rcnn.bbox_transform import clip_boxes, bbox_transform_inv
 
+from utils.cython_bbox import bbox_overlaps
+
 
 def _get_image_blob(im):
     """Converts an image into a network input.
