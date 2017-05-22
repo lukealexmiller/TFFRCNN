@@ -263,11 +263,13 @@ def save_hardneg( detections, gt_boxes, gt_cls_names, hardneg_save_path ):
 #   gt_boxes:     the groundtruth bbox (could be the mixture of groundtruth fg and bg bboxs)
 #   gt_cls_names: the class names corresponding to gt_boxes
     overlaps = bbox_overlaps(
-        np.ascontiguousarray(detections, dtype=np.float),
+        np.ascontiguousarray(detections[:,:4], dtype=np.float),
         np.ascontiguousarray(gt_boxes, dtype=np.float))
     argmax_overlaps = overlaps.argmax(axis=1)
     max_overlaps = overlaps[np.arange(len(argmax_overlaps)), argmax_overlaps]
-    hardneg_inds = np.where( max_overlaps <= 0.1 )[0]
+    confidence = detections[:,4]
+    print(confidence)
+    hardneg_inds = np.where( max_overlaps <= 0.5 & )[0]
     hardnegs = detections[hardneg_inds, :]
 
     xml_f = open(hardneg_save_path, 'w')
@@ -443,7 +445,7 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300, thresh=0.05,
         hardneg_save_path = os.path.join( hardneg_save_dir,
                                           os.path.splitext( os.path.basename(imdb.image_path_at(i)) )[0] + '.xml' )
 
-        save_hardneg( detections_im_i[:,:4], gt_boxes, gt_cls_names, hardneg_save_path )
+        save_hardneg( detections_im_i[:,:5], gt_boxes, gt_cls_names, hardneg_save_path )
         if vis:
             vis_hardneg(im, imdb.image_path_at(i), detections_im_i[:,:4], gt_boxes, gt_cls_names)
 
