@@ -442,7 +442,7 @@ def test_net(sess, net, imdb, weights_filename , max_per_image=300, thresh=0.05,
         hardneg_save_dir = os.path.join( 
                                         os.path.dirname( 
                                            os.path.dirname( imdb.image_path_at(i) ) ), 
-                                        'HardnegAnn' )
+                                        'HardnegAnnotations' )
         if not os.path.exists( hardneg_save_dir ):
             os.mkdir( hardneg_save_dir )
         hardneg_save_path = os.path.join( hardneg_save_dir,
