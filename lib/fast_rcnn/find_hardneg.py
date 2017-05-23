@@ -269,7 +269,7 @@ def save_hardneg( detections, gt_boxes, gt_cls_names, hardneg_save_path ):
     argmax_overlaps = overlaps.argmax(axis=1)
     max_overlaps = overlaps[np.arange(len(argmax_overlaps)), argmax_overlaps]
     confidence = detections[:,4]
-    hardneg_inds = np.where(( max_overlaps <= 0.5 ) & ( confidence >= 0.8 ))[0]
+    hardneg_inds = np.where(( max_overlaps <= cfg.TEST.HARDNEG_OVERLAP ) & ( confidence >= cfg.TEST.HARDNEG_CONF ))[0]
     hardnegs = detections[hardneg_inds, :4]
 
     xml_f = open(hardneg_save_path, 'w')
@@ -325,7 +325,7 @@ def vis_hardneg(im, im_name, detections, gt_boxes, gt_cls_names):
     argmax_overlaps = overlaps.argmax(axis=1)
     max_overlaps = overlaps[np.arange(len(argmax_overlaps)), argmax_overlaps]
     confidence = detections[:,4]
-    hardneg_inds = np.where(( max_overlaps <= 0.5 ) & ( confidence >= 0.8 ))[0]
+    hardneg_inds = np.where(( max_overlaps <= cfg.TEST.HARDNEG_OVERLAP ) & ( confidence >= cfg.TEST.HARDNEG_CONF ))[0]
     hardnegs = detections[hardneg_inds, :4]
 
     im = im[:, :, (2, 1, 0)]

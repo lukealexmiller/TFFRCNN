@@ -210,6 +210,11 @@ __C.TEST.RPN_POST_NMS_TOP_N = 300
 #__C.TEST.RPN_POST_NMS_TOP_N = 2000
 # Proposal height and width both need to be greater than RPN_MIN_SIZE (at orig image scale)
 __C.TEST.RPN_MIN_SIZE = 16
+# Upper overlap limit between a detection and ground-truth box in order for that detection 
+# to be used as a hard negative training example.
+__C.TEST.HARDNEG_OVERLAP = 0.5
+# Lower confidence limit for the detection to be a hard negative training example.
+__C.TEST.HARDNEG_CONF = 0.8
 
 
 #
