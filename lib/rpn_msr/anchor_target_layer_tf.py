@@ -83,6 +83,10 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
     # map of shape (..., H, W)
     height, width = rpn_cls_score.shape[1:3]
 
+    # hard negative examples are denoted by label 0
+    gt_hardneg_ind     = np.where( gt_boxes[:,-1] == 0 )[0]
+    gt_non_hardneg_ind = np.where( gt_boxes[:,-1] >  0 )[0]
+
     if DEBUG:
         print 'AnchorTargetLayer: height', height, 'width', width
         print ''
@@ -137,25 +141,41 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
     overlaps = bbox_overlaps(
         np.ascontiguousarray(anchors, dtype=np.float),
         np.ascontiguousarray(gt_boxes, dtype=np.float))
-    argmax_overlaps = overlaps.argmax(axis=1) # (A)
-    max_overlaps = overlaps[np.arange(len(inds_inside)), argmax_overlaps]
-    gt_argmax_overlaps = overlaps.argmax(axis=0) # G
-    gt_max_overlaps = overlaps[gt_argmax_overlaps,
-                               np.arange(overlaps.shape[1])]
-    gt_argmax_overlaps = np.where(overlaps == gt_max_overlaps)[0]
 
-    if not cfg.TRAIN.RPN_CLOBBER_POSITIVES:
-        # assign bg labels first so that positive labels can clobber them
-        labels[max_overlaps < cfg.TRAIN.RPN_NEGATIVE_OVERLAP] = 0
+    if len(gt_non_hardneg_ind)>0:
+        argmax_overlaps = overlaps[:, gt_non_hardneg_ind].argmax(axis=1) # (A)
+        max_overlaps = overlaps[:, gt_non_hardneg_ind][np.arange(len(inds_inside)), argmax_overlaps]
+        gt_argmax_overlaps = overlaps[:, gt_non_hardneg_ind].argmax(axis=0) # G
+        gt_max_overlaps = overlaps[gt_argmax_overlaps, 
+                                   gt_non_hardneg_ind]
+        gt_argmax_overlaps = np.where(overlaps[:,gt_non_hardneg_ind] == gt_max_overlaps)[0]
 
-    # fg label: for each gt, anchor with highest overlap
-    labels[gt_argmax_overlaps] = 1
-    # fg label: above threshold IOU
-    labels[max_overlaps >= cfg.TRAIN.RPN_POSITIVE_OVERLAP] = 1
+        if not cfg.TRAIN.RPN_CLOBBER_POSITIVES:
+            # assign bg labels first so that positive labels can clobber them
+            labels[max_overlaps < cfg.TRAIN.RPN_NEGATIVE_OVERLAP] = 0
 
-    if cfg.TRAIN.RPN_CLOBBER_POSITIVES:
-        # assign bg labels last so that negative labels can clobber positives
-        labels[max_overlaps < cfg.TRAIN.RPN_NEGATIVE_OVERLAP] = 0
+        # fg label: for each gt, anchor with highest overlap
+        labels[gt_argmax_overlaps] = 1
+        # fg label: above threshold IOU
+        labels[max_overlaps >= cfg.TRAIN.RPN_POSITIVE_OVERLAP] = 1
+
+        if cfg.TRAIN.RPN_CLOBBER_POSITIVES:
+            # assign bg labels last so that negative labels can clobber positives
+            labels[max_overlaps < cfg.TRAIN.RPN_NEGATIVE_OVERLAP] = 0
+
+    # assign bg labels to hard negative examples
+    if len(gt_hardneg_ind)>0:
+        argmax_overlaps_hardneg = overlaps[:, gt_hardneg_ind].argmax(axis=1) # (A)
+        max_overlaps_hardneg = overlaps[:, gt_hardneg_ind][np.arange(len(inds_inside)), argmax_overlaps_hardneg]
+        gt_argmax_overlaps_hardneg = overlaps[:, gt_hardneg_ind].argmax(axis=0) # G
+        gt_max_overlaps_hardneg = overlaps[gt_argmax_overlaps_hardneg, 
+                                           gt_hardneg_ind]
+        gt_argmax_overlaps_hardneg = np.where(overlaps[:,gt_hardneg_ind] == gt_max_overlaps_hardneg)[0]
+
+        # hard negative bg label: for each gt, anchor with highest overlap
+        labels[gt_argmax_overlaps_hardneg] = 0
+        # hard negative bg label: above threshold IOU
+        labels[max_overlaps_hardneg >= cfg.TRAIN.RPN_POSITIVE_OVERLAP] = 0
 
     # preclude dontcare areas
     if dontcare_areas is not None and dontcare_areas.shape[0] > 0:
@@ -194,9 +214,16 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
     num_bg = cfg.TRAIN.RPN_BATCHSIZE - np.sum(labels == 1)
     bg_inds = np.where(labels == 0)[0]
     if len(bg_inds) > num_bg:
-        disable_inds = npr.choice(
-            bg_inds, size=(len(bg_inds) - num_bg), replace=False)
-        labels[disable_inds] = -1
+        if len(gt_hardneg_ind)>0:
+            hardneg_ind = np.where(max_overlaps_hardneg >= cfg.TRAIN.RPN_POSITIVE_OVERLAP)[0]
+            bg_inds = np.asarray( list( set(bg_inds) - set(hardneg_ind) ) )
+            disable_inds = npr.choice(
+                bg_inds, size=(len(bg_inds) - num_bg + len(hardneg_ind) ), replace=False)
+            labels[disable_inds] = -1
+        else:
+            disable_inds = npr.choice(
+                bg_inds, size=(len(bg_inds) - num_bg ), replace=False)
+            labels[disable_inds] = -1
         #print "was %s inds, disabling %s, now %s inds" % (
             #len(bg_inds), len(disable_inds), np.sum(labels == 0))
 
