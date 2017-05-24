@@ -87,8 +87,6 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
     gt_hardneg_ind     = np.where( gt_boxes[:,-1] == 0 )[0]
     gt_non_hardneg_ind = np.where( gt_boxes[:,-1] >  0 )[0]
 
-    print("DEBUG: Number of hard negatives: %d and non hard negatives: %d")%(len(gt_hardneg_ind),len(gt_non_hardneg_ind))
-
     if DEBUG:
         print 'AnchorTargetLayer: height', height, 'width', width
         print ''
@@ -97,6 +95,8 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
         print 'height, width: ({}, {})'.format(height, width)
         print 'rpn: gt_boxes.shape', gt_boxes.shape
         print 'rpn: gt_boxes', gt_boxes
+        print 'nonhardneg: ', len(gt_non_hardneg_ind)
+        print 'hardneg: ', len(gt_hardneg_ind)
 
     # 1. Generate proposals from bbox deltas and shifted anchors
     shift_x = np.arange(0, width) * _feat_stride
