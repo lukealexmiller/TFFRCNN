@@ -149,7 +149,7 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     bbox_targets, bbox_inside_weights = _get_bbox_regression_labels(
             roidb['bbox_targets'][keep_inds, :], num_classes)
 
-    """ DEBUG
+    #DEBUG
     import cv2
     import os.path
     im = cv2.imread( roidb['image'])
@@ -176,8 +176,9 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
             x2 = roidb['width']-x2
         cv2.rectangle(im, (x1, y1), (x2, y2) , (0,0,255), 1)
     cv2.imwrite( imname, im )
-    print ("DEBUG Minibatch: Image: %s nBKG = %d nHardNeg = %d nTotal = %d Ratio = %.3f")%(imname,len(bg_inds),len(hardneg_inds),rois.shape[0],len(hardneg_inds)/len(bg_inds))
-    """
+    print ("DEBUG Minibatch: Image: %s nBKG = %d nHardNeg = %d nTotal = %d Ratio = %.3f")%(imname,
+                len(bg_inds),len(hardneg_inds),rois.shape[0],len(hardneg_inds)/len(bg_inds))
+    
 
     return labels, overlaps, rois, bbox_targets, bbox_inside_weights
 
