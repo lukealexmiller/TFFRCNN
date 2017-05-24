@@ -87,7 +87,7 @@ def anchor_target_layer(rpn_cls_score, gt_boxes, gt_ishard, dontcare_areas, im_i
     gt_hardneg_ind     = np.where( gt_boxes[:,-1] == 0 )[0]
     gt_non_hardneg_ind = np.where( gt_boxes[:,-1] >  0 )[0]
 
-    print("DEBUG: Number of hard negatives: %d and non hard negatives: %d")%(gt_hardneg_ind,gt_non_hardneg_ind)
+    print("DEBUG: Number of hard negatives: %d and non hard negatives: %d")%(len(gt_hardneg_ind),len(gt_non_hardneg_ind))
 
     if DEBUG:
         print 'AnchorTargetLayer: height', height, 'width', width
