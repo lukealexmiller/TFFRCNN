@@ -10,6 +10,7 @@
 experiments/notebooks/.ipynb_checkpoints/*
 experiments/logs/*
 experiments/eval/*
+data/*
 data/cache/*
 data/pretrain_model
 data/VOC*
@@ -17,3 +18,5 @@ data/KITTI*
 output
 logs
 utest
+.DS_Store
+._.DS_Store
