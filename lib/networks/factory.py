@@ -12,6 +12,7 @@ __sets = {}
 from .VGGnet_test import VGGnet_test
 from .VGGnet_testold import VGGnet_testold
 from .VGGnet_train import VGGnet_train
+from .VGGnet_FeatConcat_train import VGGnet_FeatConcat_train
 from .Resnet50_test import Resnet50_test
 from .Resnet50_train import Resnet50_train
 from .Resnet101_test import Resnet101_test
@@ -29,6 +30,13 @@ def get_network(name):
            return VGGnet_train()
         elif name.split('_')[1] == 'testold':
             return VGGnet_testold()
+        elif name.split('_')[1] == 'FeatConcat':
+            if name.split('_')[2] == 'test':
+                return VGGnet_FeatConcat_test()
+            elif name.split('_')[2] == 'train':
+                return VGGnet_FeatConcat_train()
+            else:
+                raise KeyError('Unknown dataset: {}'.format(name))
         else:
            raise KeyError('Unknown dataset: {}'.format(name))
     elif name.split('_')[0] == 'Resnet50':
