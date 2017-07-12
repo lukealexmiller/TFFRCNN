@@ -17,6 +17,7 @@ data/VOC*
 data/KITTI*
 output
 logs
+logs_old
 utest
 .DS_Store
 ._.DS_Store

@@ -571,8 +571,22 @@ class Network(object):
             return tf.add(tf.multiply(input, alpha), beta)
 
 
+    @layer
+    def feat_concat(self, inputs, axis, scaling, name, order='euclidean'):
+        """Perform feature concatenation.
+        """
+        with tf.variable_scope(name) as scope:
+            for i, input in enumerate(inputs):
+                inputs[i] = tf.divide(input,tf.norm(input,ord=order,axis=None,keep_dims=False), name='norm_'+str(i))
 
+            concat = tf.concat(axis=-1, values=inputs, name='concat')
+            print(concat)
 
+            alpha = tf.get_variable('alpha', shape=[], dtype=tf.float32,
+                                    initializer=tf.constant_initializer(1.0), trainable=True,
+                                    regularizer=self.l2_regularizer(cfg.TRAIN.WEIGHT_DECAY))
+            tf.summary.scalar('alpha', alpha)
+        return tf.multiply(concat, tf.multiply(scaling, alpha))
 
 
     @layer

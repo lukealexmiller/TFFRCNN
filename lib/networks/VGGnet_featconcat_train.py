@@ -2,7 +2,7 @@ import tensorflow as tf
 from network import Network
 from ..fast_rcnn.config import cfg
 
-class VGGnet_FeatConcat_train(Network):
+class VGGnet_featconcat_train(Network):
     def __init__(self, trainable=True):
         self.inputs = []
         self.data = tf.placeholder(tf.float32, shape=[None, None, None, 3], name='data')
@@ -42,6 +42,7 @@ class VGGnet_FeatConcat_train(Network):
              .conv(3, 3, 512, 1, 1, name='conv5_1')
              .conv(3, 3, 512, 1, 1, name='conv5_2')
              .conv(3, 3, 512, 1, 1, name='conv5_3'))
+        
         #========= RPN ============
         (self.feed('conv5_3')
              .conv(3,3,512,1,1,name='rpn_conv/3x3'))
@@ -79,9 +80,22 @@ class VGGnet_FeatConcat_train(Network):
         (self.feed('rpn_rois','gt_boxes', 'gt_ishard', 'dontcare_areas')
              .proposal_target_layer(n_classes,name = 'roi-data'))
 
+
+
         #========= RCNN ============        
+        (self.feed('conv3_3', 'rois')
+             .roi_pool(7, 7, 1.0/16, name='pool5_1'))
+
+        (self.feed('conv4_3', 'rois')
+             .roi_pool(7, 7, 1.0/16, name='pool5_2'))
+
         (self.feed('conv5_3', 'rois')
-             .roi_pool(7, 7, 1.0/16, name='pool_5')
+             .roi_pool(7, 7, 1.0/16, name='pool5_3'))
+
+        #========= Feature Concatenation ============  
+        (self.feed('pool5_1','pool5_2','pool5_3')
+             .feat_concat(axis=0, scaling=4700.0, order='euclidean', name='feat_concat')
+             .conv(1, 1, 512, 1, 1, name='conv6_1')
              .fc(4096, name='fc6')
              .dropout(0.5, name='drop6')
              .fc(4096, name='fc7')

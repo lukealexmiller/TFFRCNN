@@ -117,6 +117,10 @@ class SolverWrapper(object):
         tf.summary.scalar('cls_loss', cross_entropy)
         tf.summary.scalar('rgs_loss', loss_box)
         tf.summary.scalar('loss', loss)
+
+        # TESTING
+        #tf.summary.scalar('feat_concat', tf.reduce_sum(feat_concat))
+        
         summary_op = tf.summary.merge_all()
 
         # image writer
@@ -161,13 +165,35 @@ class SolverWrapper(object):
         if restore:
             try:
                 ckpt = tf.train.get_checkpoint_state(self.output_dir)
-                print 'Restoring from {}...'.format(ckpt.model_checkpoint_path),
+                print 'Restoring from {}...'.format(ckpt.model_checkpoint_path)
                 self.saver.restore(sess, ckpt.model_checkpoint_path)
                 stem = os.path.splitext(os.path.basename(ckpt.model_checkpoint_path))[0]
                 restore_iter = int(stem.split('_')[-1])
                 sess.run(global_step.assign(restore_iter))
                 print 'done'
-            except:
+            except tf.errors.NotFoundError:
+                """
+                all_vars = tf.global_variables()
+                for v in all_vars:
+                    print(v.name)
+
+                from tensorflow.python import pywrap_tensorflow
+
+                ckpt_reader = pywrap_tensorflow.NewCheckpointReader(ckpt.model_checkpoint_path)
+                saved_vars = ckpt_reader.get_variable_to_shape_map()
+                for v in saved_vars:
+                    print(v)
+                    print(np.sum(ckput_reader.get_tensor(v)))
+
+                var_to_restore = [v for v in all_vars if not (v.name.startswith('Variable') or v.name.startswith('conv6') or v.name.endswith('Momentum:0'))]
+
+                self.saver = tf.train.Saver(var_to_restore,max_to_keep=100)
+                self.saver.restore(sess, ckpt.model_checkpoint_path)
+                stem = os.path.splitext(os.path.basename(ckpt.model_checkpoint_path))[0]
+                restore_iter = int(stem.split('_')[-1])
+                sess.run(global_step.assign(restore_iter))
+                print 'done'
+                """
                 raise 'Check your pretrained {:s}'.format(ckpt.model_checkpoint_path)
 
         last_snapshot_iter = -1
@@ -248,6 +274,9 @@ class SolverWrapper(object):
                               loss_box,
                               summary_op,
                               train_op] + res_fetches
+
+                # TESTING (and in run below)
+                #fetch_list += [self.net.get_output('feat_concat')]
 
                 fetch_list += []
                 rpn_loss_cls_value, rpn_loss_box_value, loss_cls_value, loss_box_value, \
