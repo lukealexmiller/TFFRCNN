@@ -258,17 +258,20 @@ class pascal_voc(imdb):
                 continue
             print 'Writing {} VOC results file'.format(cls)
             filename = self._get_voc_results_file_template().format(cls)
-            with open(filename, 'wt') as f:
-                for im_ind, index in enumerate(self.image_index):
-                    dets = all_boxes[cls_ind][im_ind]
-                    if dets == []:
-                        continue
-                    # the VOCdevkit expects 1-based indices
-                    for k in xrange(dets.shape[0]):
-                        f.write('{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
-                                format(index, dets[k, -1],
-                                       dets[k, 0] + 1, dets[k, 1] + 1,
-                                       dets[k, 2] + 1, dets[k, 3] + 1))
+            try:
+                with open(filename, 'wt') as f:
+                    for im_ind, index in enumerate(self.image_index):
+                        dets = all_boxes[cls_ind][im_ind]
+                        if dets == []:
+                            continue
+                        # the VOCdevkit expects 1-based indices
+                        for k in xrange(dets.shape[0]):
+                            f.write('{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
+                                    format(index, dets[k, -1],
+                                           dets[k, 0] + 1, dets[k, 1] + 1,
+                                           dets[k, 2] + 1, dets[k, 3] + 1))
+            except IOError as (errno,strerror):
+                print "I/O error({0}): {1}".format(errno, strerror)
 
     def _do_python_eval(self, output_dir = 'output'):
         annopath = os.path.join(
